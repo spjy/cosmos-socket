@@ -22,8 +22,6 @@ set(COSMOS_LIBS
     CosmosDeviceDisk
     )
 
-find_package(libmongocxx REQUIRED)
-find_package(libbsoncxx REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Boost COMPONENTS system REQUIRED)
 
@@ -33,32 +31,21 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(COSMOS_LIBS ${COSMOS_LIBS} ws2_32)
 endif()
 
-include_directories(${LIBMONGOCXX_INCLUDE_DIRS} ${LIBBSONCXX_INCLUDE_DIRS})
-link_directories(${LIBMONGOCXX_INCLUDE_DIRS})
-link_directories(${LIBBSONCXX_INCLUDE_DIRS})
-
 include_directories(${PROJECT_SOURCE_DIR}/include)
-message(${LIBBSONCXX_INCLUDE_DIRS})
 add_executable(agent_socket agent_socket.cpp)
 
 target_include_directories(agent_socket
-  PRIVATE ${LIBMONGOCXX_INCLUDE_DIRS} ${LIBBSONCXX_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include
+  PRIVATE ${PROJECT_SOURCE_DIR}/include
   ${Boost_INCLUDE_DIR}
 )
 
 target_link_libraries(agent_socket
   PRIVATE
   ${COSMOS_LIBS}
-  ${LIBMONGOCXX_LIBRARIES}
-  ${LIBBSONCXX_LIBRARIES}
   OpenSSL::SSL
   OpenSSL::Crypto
   ${Boost_SYSTEM_LIBRARY}
   stdc++fs
-)
-
-target_compile_definitions(agent_socket
-  PRIVATE ${LIBMONGOCXX_DEFINITIONS} ${LIBBSONCXX_DEFINITIONS}
 )
 
 #target_link_libraries(agent_mongo ${COSMOS_LIBS} bson-1.0 bsoncxx mongoc-1.0 mongocxx ssl crypto boost_system stdc++fs)
