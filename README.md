@@ -14,7 +14,9 @@ An alternative agent to agent_mongo if you do not need the database portion.
 ```bash
 # Clone repository
 git clone https://github.com/spjy/cosmos-socket.git
+cd cosmos-socket
 mkdir build
+cd build
 cmake ../source
 make
 ```
