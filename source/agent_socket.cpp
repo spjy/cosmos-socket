@@ -325,6 +325,7 @@ int main(int argc, char** argv)
 
     agent->shutdown();
     ws_thread.join();
+    query_thread.join();
     get_packets_thread.join();
     collect_data_loop_thread.join();
 
