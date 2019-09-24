@@ -69,7 +69,6 @@ static Agent *agent;
 //int32_t request_change_socket_address(char *request, char *respsonse, Agent *);
 //int32_t request_change_socket_port(char *request, char *respsonse, Agent *);
 
-
 void collect_data_loop(std::vector<std::string> &included_nodes, std::vector<std::string> &excluded_nodes);
 std::string execute(std::string cmd);
 void get_packets();
@@ -78,6 +77,7 @@ void str_to_lowercase(std::string &input);
 
 static thread get_packets_thread;
 static thread collect_data_loop_thread;
+static thread maintain_agent_list_thread;
 
 /*! Run a command line script and get the output of it.
  * \brief execute Use popen to run a command line script and get the output of the command.
@@ -268,14 +268,6 @@ int main(int argc, char** argv)
     WsServer ws_query;
     ws_query.config.port = 8080;
 
-    // Endpoints for querying the database. Goes to /query/
-    // Example query message: database=db?collection=test?multiple=true?query={"cost": { "$lt": 11 }}?options={"limit": 5}
-    // database: the database name
-    // collection: the collection name
-    // multiple: whether to return in array format/multiple
-    // query: JSON querying the mongo database. See MongoDB docs for more complex queries
-    // options: JSON options
-    // For live requests, to broadcast to all clients. Goes to /live/node_name/
     auto &echo_all = ws_live.endpoint["^/live/(.+)/?$"];
 
     echo_all.on_message = [&echo_all](std::shared_ptr<WsServer::Connection> connection, std::shared_ptr<WsServer::InMessage> in_message)
@@ -341,7 +333,6 @@ int main(int argc, char** argv)
 
 void get_packets()
 {
-
     char buffer[1024];
     int listenfd, len;
     struct sockaddr_in servaddr, cliaddr;
@@ -369,18 +360,12 @@ void get_packets()
         // If there is a message from the socket run process
         if (iretn > 0)
         {
-            cout << iretn << endl << buffer << endl;
-
             WsClient client("localhost:8081/live/activity");
 
             std::string response = "{\"node_type\": \"activity\", \"activity\": \"" + static_cast<std::string>(buffer) + "\", \"utc\": " + std::to_string(currentmjd()) + " }";
 
-            cout << response << endl;
-
             client.on_open = [&response](std::shared_ptr<WsClient::Connection> connection)
             {
-                cout << "WS Agent Live: Broadcasted activity" << endl;
-
                 connection->send(response);
 
                 connection->send_close(1000);
@@ -402,7 +387,7 @@ void get_packets()
             client.start();
         }
 
-        COSMOS_SLEEP(1.);
+        COSMOS_SLEEP(5.);
     }
 
     close(listenfd);
@@ -455,8 +440,6 @@ void collect_data_loop(std::vector<std::string> &included_nodes, std::vector<std
 
                     client.on_open = [&adata, &node_type](std::shared_ptr<WsClient::Connection> connection)
                     {
-                        cout << "WS Live: Broadcasted adata for " << node_type << endl;
-
                         connection->send(adata);
 
                         connection->send_close(1000);
@@ -479,35 +462,7 @@ void collect_data_loop(std::vector<std::string> &included_nodes, std::vector<std
                 }
             }
         }
-        COSMOS_SLEEP(.5);
+        COSMOS_SLEEP(5.);
     }
     return;
 }
-
-//int32_t request_change_socket_address(char *request, char *response, Agent *) {
-//    char new_address[strlen(request)];
-
-//    sscanf("change_socket_address %s", new_address);
-
-//    inet_pton(AF_INET, new_address, &address.sin_addr);
-
-//    std::string a = new_address;
-
-//    cout << new_address[0] << new_address[1] << endl;
-//    len = sizeof(address);
-
-//    return 0;
-//}
-
-//int32_t request_change_socket_port(char *request, char *response, Agent *) {
-//    char port[strlen(request)];
-
-//    sscanf("change_socket_port %s", port);
-
-//    address.sin_port = htons(atoi(port));
-//    len = sizeof(address);
-
-//    cout << atoi(port) << endl;
-
-//    return 0;
-//}
