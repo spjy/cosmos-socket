@@ -13,11 +13,19 @@ An alternative agent to agent_mongo if you do not need the database portion.
 
 ```bash
 # Clone repository
-git clone https://github.com/spjy/cosmos-socket.git
+git clone https://github.com/spjy/cosmos-socket.git /path/to/cosmos/source/projects
+cd cosmos-socket
+
+# Make build folder
 mkdir build
+cd build
+
+# Compile
 cmake ../source
 make
 ```
+
+For the UDP socket, connect and send data to localhost:5005.
 
 ## Running
 
@@ -56,8 +64,6 @@ This is a listen-only endpoint. As data is flowing in from any node/process, it 
   * A comma delimited list of nodes as strings to not save data to the database or can contain a wildcard to include all nodes.
 * --exclude
   * A comma delimited list of nodes as strings to save data to the database.
-* --database
-  * The database to save agent data to.
 
 **Examples**:
 
